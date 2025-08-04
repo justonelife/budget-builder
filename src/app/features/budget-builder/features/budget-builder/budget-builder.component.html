@@ -1,0 +1,134 @@
+@let monthRangeFormValue = monthRangeForm.getRawValue();
+@let _incomes = incomes();
+<!-- <pre>{{ _incomes | json }}</pre> -->
+
+<table class="table-auto border-collapse" (input)="tableInput($event)">
+  <thead>
+    <tr>
+      <th class="border">
+        <form class="flex flex-col gap-1 p-2" [formGroup]="monthRangeForm">
+          <div class="flex gap-2">
+            <div class="flex flex-col">
+              <label class="text-xs font-bold">Start Month</label>
+              <select
+                class="w-[200px] border font-normal"
+                formControlName="from"
+              >
+                @for (month of MONTHS; track month.value) {
+                  <option [value]="month.value">{{ month.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="flex flex-col">
+              <label class="text-xs font-bold">End Month</label>
+              <select class="w-[200px] border font-normal" formControlName="to">
+                @for (month of MONTHS; track month.value) {
+                  <option [value]="month.value">{{ month.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+          @if (monthRangeForm.invalid) {
+            <span class="text-xs text-red-500"
+              >Start month should not be after end month.</span
+            >
+          }
+        </form>
+      </th>
+      @for (month of monthRangeFormValue | monthSpan; track month.value) {
+        <th class="border min-w-[150px]">{{ month.label }} 2025</th>
+      }
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td
+        class="border p-2 font-bold"
+        [attr.colspan]="monthRangeFormValue | colSpanFull"
+      >
+        Income
+      </td>
+    </tr>
+
+    @for (parentIncome of _incomes; track parentIncome.id) {
+      <tr>
+        <td
+          class="border p-2 font-bold"
+          contenteditable
+          [attr.data-id]="parentIncome.id"
+        >
+          {{ parentIncome.label }}
+        </td>
+      </tr>
+
+      @for (transaction of parentIncome.transactions; track transaction.id) {
+        <tr>
+          <td class="border p-2">
+            {{ transaction.label }}
+          </td>
+
+          @for (month of monthRangeFormValue | monthSpan; track month.value) {
+            <td class="border p-2">
+              {{ transaction.monthlyValues[month.value - 1] }}
+            </td>
+          }
+        </tr>
+      }
+
+      <tr>
+        <td class="border p-2">
+          <button
+            class="border px-2 rounded bg-gray-300 font-bold cursor-pointer"
+            type="button"
+            (click)="addCategoryIncome(parentIncome.id)"
+          >
+            Add a new &#39;{{ parentIncome.label }}&#39; Category
+          </button>
+        </td>
+      </tr>
+    }
+
+    @if (_incomes.length) {
+      <ng-container *ngTemplateOutlet="breakLine"></ng-container>
+    } @else {
+      <tr>
+        <td contenteditable autofocus class="border p-2">&nbsp;</td>
+      </tr>
+    }
+    <tr>
+      <td class="border p-2">
+        <button
+          class="border px-2 rounded bg-gray-300 font-bold cursor-pointer"
+          type="button"
+          (click)="addParentCategoryIncome()"
+        >
+          Add New Parent Category
+        </button>
+      </td>
+    </tr>
+
+    <ng-container *ngTemplateOutlet="breakLine"></ng-container>
+    <tr>
+      <td class="border p-2 font-bold">Income total</td>
+    </tr>
+
+    <ng-container *ngTemplateOutlet="breakLine"></ng-container>
+    <tr>
+      <td
+        class="border p-2 font-bold"
+        [attr.colspan]="monthRangeFormValue | colSpanFull"
+      >
+        Expense
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<ng-template #breakLine>
+  <tr>
+    <td class="border p-2" [attr.colspan]="monthRangeFormValue | colSpanFull">
+      &nbsp;
+    </td>
+  </tr>
+</ng-template>
