@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, HostListener, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MONTHS } from '@features/budget-builder/data-access/consts/const';
 import {
@@ -11,7 +12,15 @@ import { Income } from '@features/budget-builder/data-access/types/income';
 import { Transaction } from '@features/budget-builder/data-access/types/transaction';
 import { monthRangeValidator } from '@features/budget-builder/data-access/utils';
 import { TypedForm } from '@shared/data-access/types/typed-form';
+import { combineLatest, finalize, Subject, tap } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
+
+interface TableChanges {
+  id: string | null | undefined;
+  type: string | undefined;
+  index: string | undefined;
+  element: HTMLElement;
+}
 
 @Component({
   imports: [CommonModule, ReactiveFormsModule, MonthSpanPipe, ColSpanFullPipe],
@@ -23,6 +32,8 @@ import { v4 as uuidv4 } from 'uuid';
   },
 })
 export class BudgetBuilderComponent {
+  destroyRef = inject(DestroyRef);
+
   readonly MONTHS = MONTHS;
 
   monthRangeForm: TypedForm<MonthRange> = new FormGroup(
@@ -36,6 +47,32 @@ export class BudgetBuilderComponent {
   );
 
   incomes = signal<Income[]>([]);
+
+  private tableChanges$ = new Subject<TableChanges>();
+  private triggerSaveBy$ = new Subject<'enter' | 'blur' | null>();
+
+  constructor() {
+    combineLatest({
+      triggerSaveBy: this.triggerSaveBy$,
+      tableChanges: this.tableChanges$
+    }).pipe(
+      tap(value => {
+        if (value.triggerSaveBy) {
+          console.log(value);
+        }
+      }),
+      tap(value => {
+        if (value.triggerSaveBy === 'enter') {
+          value.tableChanges.element.onblur = () => { };
+          value.tableChanges.element.blur();
+        }
+        if (value.triggerSaveBy) {
+          this.triggerSaveBy$.next(null);
+        }
+      }),
+      takeUntilDestroyed()
+    ).subscribe();
+  }
 
   addParentCategoryIncome(label: string = 'New parent category'): void {
     this.incomes.update((value) => [
@@ -80,8 +117,22 @@ export class BudgetBuilderComponent {
     };
   }
 
-  tableInput(event: Event) {
+  tableInput(event: Event): void {
     const element = event.target as HTMLElement;
-    console.log(element?.dataset['id']);
+    const { id, type, index } = element?.dataset;
+
+    element.onblur = () => {
+      this.triggerSaveBy$.next('blur');
+    }
+
+    this.tableChanges$.next({ element, id, type, index });
+
+  }
+
+  onKeyPress(event: KeyboardEvent): void {
+    if (event.code === 'Enter') {
+      event.preventDefault();
+      this.triggerSaveBy$.next('enter');
+    }
   }
 }
