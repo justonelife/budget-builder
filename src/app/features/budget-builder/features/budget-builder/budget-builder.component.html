@@ -1,6 +1,6 @@
 @let monthRangeFormValue = monthRangeForm.getRawValue();
 @let _incomes = incomes();
-<!-- <pre>{{ _incomes | json }}</pre> -->
+@let _expenses = expenses();
 
 <table class="table-auto border-collapse" (input)="tableInput($event)" (keypress)="onKeyPress($event)">
   <thead>
@@ -45,20 +45,21 @@
 
     @for (parentIncome of _incomes; track parentIncome.id) {
     <tr>
-      <td class="border p-2 font-bold" contenteditable [attr.data-id]="parentIncome.id">
+      <td class="border p-2 font-bold" contenteditable [attr.data-id]="parentIncome.id" [attr.data-type]="'income'">
         {{ parentIncome.label }}
       </td>
     </tr>
 
     @for (transaction of parentIncome.transactions; track transaction.id) {
     <tr>
-      <td class="border p-2" contenteditable>
+      <td class="border p-2" contenteditable [attr.data-id]="transaction.id" [attr.data-type]="'income'"
+        [attr.data-subtype]="'transaction'">
         {{ transaction.label }}
       </td>
 
       @for (month of monthRangeFormValue | monthSpan; track month.value) {
       <td class="border p-2" contenteditable [attr.data-id]="transaction.id" [attr.data-type]="'income'"
-        [attr.data-index]="month.value - 1">
+        [attr.data-subtype]="'transaction'" [attr.data-index]="month.value - 1">
         {{ transaction.monthlyValues[month.value - 1] }}
       </td>
       }
@@ -79,7 +80,7 @@
     <ng-container *ngTemplateOutlet="breakLine"></ng-container>
     } @else {
     <tr>
-      <td contenteditable autofocus class="border p-2">&nbsp;</td>
+      <td contenteditable autofocus class="border p-2" [attr.data-type]="'income'"></td>
     </tr>
     }
     <tr>
@@ -102,8 +103,63 @@
         Expense
       </td>
     </tr>
+
+    @for (parentExpense of _expenses; track parentExpense.id) {
+    <tr>
+      <td class="border p-2 font-bold" contenteditable [attr.data-id]="parentExpense.id" [attr.data-type]="'expense'">
+        {{ parentExpense.label }}
+      </td>
+    </tr>
+
+    @for (transaction of parentExpense.transactions; track transaction.id) {
+    <tr>
+      <td class="border p-2" contenteditable [attr.data-id]="transaction.id" [attr.data-type]="'expense'"
+        [attr.data-subtype]="'transaction'">
+        {{ transaction.label }}
+      </td>
+
+      @for (month of monthRangeFormValue | monthSpan; track month.value) {
+      <td class="border p-2" contenteditable [attr.data-id]="transaction.id" [attr.data-type]="'expense'"
+        [attr.data-subtype]="'transaction'" [attr.data-index]="month.value - 1">
+        {{ transaction.monthlyValues[month.value - 1] }}
+      </td>
+      }
+    </tr>
+    }
+
+    <tr>
+      <td class="border p-2">
+        <button class="border px-2 rounded bg-gray-300 font-bold cursor-pointer" type="button"
+          (click)="addCategoryExpense(parentExpense.id)">
+          Add a new &#39;{{ parentExpense.label }}&#39; Category
+        </button>
+      </td>
+    </tr>
+    }
+
+    @if (_expenses.length) {
+    <ng-container *ngTemplateOutlet="breakLine"></ng-container>
+    } @else {
+    <tr>
+      <td contenteditable autofocus class="border p-2" [attr.data-type]="'expense'"></td>
+    </tr>
+    }
+    <tr>
+      <td class="border p-2">
+        <button class="border px-2 rounded bg-gray-300 font-bold cursor-pointer" type="button"
+          (click)="addParentCategoryExpense()">
+          Add New Parent Category
+        </button>
+      </td>
+    </tr>
+
+    <ng-container *ngTemplateOutlet="breakLine"></ng-container>
+    <tr>
+      <td class="border p-2 font-bold">Expense total</td>
+    </tr>
   </tbody>
 </table>
+<!-- <pre>{{ _expenses | json }}</pre> -->
 
 <ng-template #breakLine>
   <tr>
