@@ -38,7 +38,7 @@ interface TableChanges {
   templateUrl: './budget-builder.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'block p-4',
+    class: 'block p-8',
   },
 })
 export class BudgetBuilderComponent {
@@ -430,6 +430,48 @@ export class BudgetBuilderComponent {
         });
 
       });
+    }
+  }
+
+  onDeleteTransaction(type: 'income' | 'expense', id: string): void {
+    if (window.confirm("Do you want to delete this transaction?")) {
+
+      if (type === 'income') {
+        this.incomes.update((incomes) => {
+          return incomes.map(income => {
+            const transactionIndex = income.transactions.findIndex((transaction) => transaction.id === id);
+            if (transactionIndex === -1) return { ...income };
+            income.transactions.splice(transactionIndex, 1)
+            const updatedTransactions = [...income.transactions];
+
+            const updatedTotals = this.updateTotals(income);
+
+            return {
+              ...income,
+              totals: updatedTotals,
+              transactions: updatedTransactions,
+            };
+          });
+        });
+      } else {
+
+        this.expenses.update((expenses) => {
+          return expenses.map(expense => {
+            const transactionIndex = expense.transactions.findIndex((transaction) => transaction.id === id);
+            if (transactionIndex === -1) return { ...expense };
+            expense.transactions.splice(transactionIndex, 1)
+            const updatedTransactions = [...expense.transactions];
+
+            const updatedTotals = this.updateTotals(expense);
+
+            return {
+              ...expense,
+              totals: updatedTotals,
+              transactions: updatedTransactions,
+            };
+          });
+        });
+      }
     }
   }
 }

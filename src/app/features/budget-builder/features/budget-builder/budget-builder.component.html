@@ -52,9 +52,15 @@
 
     @for (transaction of parentIncome.transactions; track transaction.id) {
     <tr>
-      <td class="border p-2" contenteditable [attr.data-id]="transaction.id" [attr.data-type]="'income'"
-        [attr.data-subtype]="'transaction'">
-        {{ transaction.label }}
+      <td class="border p-2">
+        <span class="inline-flex justify-between w-full">
+          <span contenteditable [attr.data-id]="transaction.id" [attr.data-type]="'income'"
+            [attr.data-subtype]="'transaction'" class="px-2">
+            {{ transaction.label }}
+          </span>
+          <button type="button" class="text-red-500 border px-2 cursor-pointer"
+            (click)="onDeleteTransaction('income', transaction.id)">Delete</button>
+        </span>
       </td>
 
       @for (month of monthRangeFormValue | monthSpan; track month.value) {
@@ -135,9 +141,15 @@
 
     @for (transaction of parentExpense.transactions; track transaction.id) {
     <tr>
-      <td class="border p-2" contenteditable [attr.data-id]="transaction.id" [attr.data-type]="'expense'"
-        [attr.data-subtype]="'transaction'">
-        {{ transaction.label }}
+      <td class="border p-2">
+        <span class="inline-flex justify-between w-full">
+          <span contenteditable [attr.data-id]="transaction.id" [attr.data-type]="'expense'"
+            [attr.data-subtype]="'transaction'" class="px-2">
+            {{ transaction.label }}
+          </span>
+          <button type="button" class="text-red-500 border px-2 cursor-pointer"
+            (click)="onDeleteTransaction('expense', transaction.id)">Delete</button>
+        </span>
       </td>
 
       @for (month of monthRangeFormValue | monthSpan; track month.value) {
