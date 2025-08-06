@@ -13,6 +13,7 @@ import { monthRangeValidator } from '@features/budget-builder/data-access/utils'
 import { TypedForm } from '@shared/data-access/types/typed-form';
 import { combineLatest, debounceTime, Subject, tap } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
+import { CdkMenu, CdkMenuItem, CdkContextMenuTrigger } from '@angular/cdk/menu';
 
 interface TableChanges {
   id: string | null | undefined;
@@ -24,7 +25,15 @@ interface TableChanges {
 }
 
 @Component({
-  imports: [CommonModule, ReactiveFormsModule, MonthSpanPipe, ColSpanFullPipe],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MonthSpanPipe,
+    ColSpanFullPipe,
+    CdkContextMenuTrigger,
+    CdkMenu,
+    CdkMenuItem,
+  ],
   selector: 'app-budget-builder',
   templateUrl: './budget-builder.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -375,6 +384,52 @@ export class BudgetBuilderComponent {
     if (event.code === 'Enter') {
       event.preventDefault();
       this.triggerSaveBy$.next('enter');
+    }
+  }
+
+  applyValueAtIndexToAll(data: Pick<TableChanges, 'type' | 'id' | 'index'>): void {
+    const { type, id, index } = data;
+    if (!type || !id || index === undefined) return;
+
+    if (type === 'income') {
+      this.incomes.update((incomes) => {
+        return incomes.map(income => {
+          const transactionIndex = income.transactions.findIndex((transaction) => transaction.id === id);
+          if (transactionIndex === -1) return { ...income };
+          const valueForAll = income.transactions[transactionIndex].monthlyValues[index];
+          const updatedTransactions = [...income.transactions];
+          updatedTransactions[transactionIndex].monthlyValues = new Array(12).fill(valueForAll);
+
+          const updatedTotals = this.updateTotals(income);
+
+          return {
+            ...income,
+            totals: updatedTotals,
+            transactions: updatedTransactions,
+          };
+        });
+
+      });
+    } else if (type === 'expense') {
+      // TODO: DRY this with incomes
+      this.expenses.update((expenses) => {
+        return expenses.map(expense => {
+          const transactionIndex = expense.transactions.findIndex((transaction) => transaction.id === id);
+          if (transactionIndex === -1) return { ...expense };
+          const valueForAll = expense.transactions[transactionIndex].monthlyValues[index];
+          const updatedTransactions = [...expense.transactions];
+          updatedTransactions[transactionIndex].monthlyValues = new Array(12).fill(valueForAll);
+
+          const updatedTotals = this.updateTotals(expense);
+
+          return {
+            ...expense,
+            totals: updatedTotals,
+            transactions: updatedTransactions,
+          };
+        });
+
+      });
     }
   }
 }

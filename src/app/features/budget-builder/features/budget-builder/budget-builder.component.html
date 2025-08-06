@@ -58,8 +58,11 @@
       </td>
 
       @for (month of monthRangeFormValue | monthSpan; track month.value) {
-      <td class="border p-2" contenteditable [attr.data-id]="transaction.id" [attr.data-type]="'income'"
-        [attr.data-subtype]="'transaction'" [attr.data-index]="month.value - 1">
+
+      <td class="border p-2" [cdkContextMenuTriggerFor]="contextmenu"
+        [cdkContextMenuTriggerData]="{ data: { type: 'income', id: transaction.id, index: month.value - 1 }}"
+        contenteditable [attr.data-id]="transaction.id" [attr.data-type]="'income'" [attr.data-subtype]="'transaction'"
+        [attr.data-index]="month.value - 1">
         {{ transaction.monthlyValues[month.value - 1] }}
       </td>
       }
@@ -138,8 +141,10 @@
       </td>
 
       @for (month of monthRangeFormValue | monthSpan; track month.value) {
-      <td class="border p-2" contenteditable [attr.data-id]="transaction.id" [attr.data-type]="'expense'"
-        [attr.data-subtype]="'transaction'" [attr.data-index]="month.value - 1">
+      <td class="border p-2" [cdkContextMenuTriggerFor]="contextmenu"
+        [cdkContextMenuTriggerData]="{ data: { type: 'expense', id: transaction.id, index: month.value - 1 }}"
+        contenteditable [attr.data-id]="transaction.id" [attr.data-type]="'expense'" [attr.data-subtype]="'transaction'"
+        [attr.data-index]="month.value - 1">
         {{ transaction.monthlyValues[month.value - 1] }}
       </td>
       }
@@ -227,8 +232,8 @@
     </tr>
   </tbody>
 </table>
-<pre>{{ _incomes | json }}</pre>
-<pre>{{ _expenses | json }}</pre>
+<!-- <pre>{{ _incomes | json }}</pre> -->
+<!-- <pre>{{ _expenses | json }}</pre> -->
 
 <ng-template #breakLine>
   <tr>
@@ -236,4 +241,14 @@
       &nbsp;
     </td>
   </tr>
+</ng-template>
+
+<ng-template #contextmenu let-data="data">
+  <div class="inline-flex flex-col min-w-[180px] max-w-[280px] bg-white py-[6px]" cdkMenu>
+    <button type="button"
+      class="bg-transparent cursor-pointer border-none select-none min-w-[64px] leading-[36px] px-4 flex items-center flex-row flex-1 hover:bg-gray-300 active:bg-gray-400"
+      cdkMenuItem (click)="applyValueAtIndexToAll(data)">
+      Apply to all
+    </button>
+  </div>
 </ng-template>
