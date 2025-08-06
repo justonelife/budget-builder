@@ -45,8 +45,14 @@
 
     @for (parentIncome of _incomes; track parentIncome.id) {
     <tr>
-      <td class="border p-2 font-bold" contenteditable [attr.data-id]="parentIncome.id" [attr.data-type]="'income'">
-        {{ parentIncome.label }}
+      <td class="border p-2">
+        <span class="inline-flex justify-between w-full">
+          <span contenteditable [attr.data-id]="parentIncome.id" [attr.data-type]="'income'" class="px-2">
+            {{ parentIncome.label }}
+          </span>
+          <button type="button" class="text-red-500 border px-2 cursor-pointer"
+            (click)="onDeleteCategory('income', parentIncome.id)">Delete Category</button>
+        </span>
       </td>
     </tr>
 
@@ -134,8 +140,14 @@
 
     @for (parentExpense of _expenses; track parentExpense.id) {
     <tr>
-      <td class="border p-2 font-bold" contenteditable [attr.data-id]="parentExpense.id" [attr.data-type]="'expense'">
-        {{ parentExpense.label }}
+      <td class="border p-2">
+        <span class="inline-flex justify-between w-full">
+          <span contenteditable [attr.data-id]="parentExpense.id" [attr.data-type]="'expense'" class="px-2">
+            {{ parentExpense.label }}
+          </span>
+          <button type="button" class="text-red-500 border px-2 cursor-pointer"
+            (click)="onDeleteCategory('expense', parentExpense.id)">Delete Category</button>
+        </span>
       </td>
     </tr>
 

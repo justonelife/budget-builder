@@ -474,4 +474,25 @@ export class BudgetBuilderComponent {
       }
     }
   }
+
+  onDeleteCategory(type: 'income' | 'expense', id: string): void {
+    if (window.confirm("Do you want to delete this category? This will also delete all the corresponding transactions.")) {
+
+      if (type === 'income') {
+        this.incomes.update((incomes) => {
+          const incomeIndex = incomes.findIndex((income) => income.id === id);
+          const updatedIncomes = [...incomes];
+          updatedIncomes.splice(incomeIndex, 1);
+          return updatedIncomes;
+        });
+      } else {
+        this.expenses.update((expenses) => {
+          const expenseIndex = expenses.findIndex((expense) => expense.id === id);
+          const updatedExpenses = [...expenses];
+          updatedExpenses.splice(expenseIndex, 1);
+          return updatedExpenses;
+        });
+      }
+    }
+  }
 }
