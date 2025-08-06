@@ -127,7 +127,7 @@ export class BudgetBuilderComponent {
             // Create
             if (type === 'income') {
               this.addParentCategoryIncome(value?.toString());
-            } else {
+            } else if (type === 'expense') {
               this.addParentCategoryExpense(value?.toString());
             }
           }
