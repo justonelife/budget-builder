@@ -65,6 +65,18 @@
       }
     </tr>
     }
+    <tr>
+      <td class="border p-2 font-bold">
+        Sub Totals
+      </td>
+
+      @for (month of monthRangeFormValue | monthSpan; track month.value) {
+      <td class="border p-2">
+        {{ parentIncome.totals[month.value - 1] }}
+      </td>
+      }
+
+    </tr>
 
     <tr>
       <td class="border p-2">
@@ -80,6 +92,7 @@
     <ng-container *ngTemplateOutlet="breakLine"></ng-container>
     } @else {
     <tr>
+      <!-- Blank input add new parent income -->
       <td contenteditable autofocus class="border p-2" [attr.data-type]="'income'"></td>
     </tr>
     }
@@ -95,6 +108,12 @@
     <ng-container *ngTemplateOutlet="breakLine"></ng-container>
     <tr>
       <td class="border p-2 font-bold">Income total</td>
+
+      @for (month of monthRangeFormValue | monthSpan; track month.value) {
+      <td class="border p-2">
+        {{ incomeMonthlyTotals()[month.value - 1] }}
+      </td>
+      }
     </tr>
 
     <ng-container *ngTemplateOutlet="breakLine"></ng-container>
@@ -126,6 +145,18 @@
       }
     </tr>
     }
+    <tr>
+      <td class="border p-2 font-bold">
+        Sub Totals
+      </td>
+
+      @for (month of monthRangeFormValue | monthSpan; track month.value) {
+      <td class="border p-2">
+        {{ parentExpense.totals[month.value - 1] }}
+      </td>
+      }
+
+    </tr>
 
     <tr>
       <td class="border p-2">
@@ -156,10 +187,48 @@
     <ng-container *ngTemplateOutlet="breakLine"></ng-container>
     <tr>
       <td class="border p-2 font-bold">Expense total</td>
+
+      @for (month of monthRangeFormValue | monthSpan; track month.value) {
+      <td class="border p-2">
+        {{ expenseMonthlyTotals()[month.value - 1] }}
+      </td>
+      }
+    </tr>
+
+    <ng-container *ngTemplateOutlet="breakLine"></ng-container>
+    <tr>
+      <td class="border p-2 font-bold">Profit &#47; Loss</td>
+
+      @for (month of monthRangeFormValue | monthSpan; track month.value) {
+      <td class="border p-2">
+        {{ monthlyProfitsOrLosses()[month.value - 1] }}
+      </td>
+      }
+    </tr>
+
+    <tr>
+      <td class="border p-2 font-bold">Opening Balance</td>
+
+      @for (month of monthRangeFormValue | monthSpan; track month.value) {
+      <td class="border p-2">
+        {{ monthlyOpenBalances()[month.value - 1] }}
+      </td>
+      }
+    </tr>
+
+    <tr>
+      <td class="border p-2 font-bold">Closing Balance</td>
+
+      @for (month of monthRangeFormValue | monthSpan; track month.value) {
+      <td class="border p-2">
+        {{ monthlyCloseBalances()[month.value - 1] }}
+      </td>
+      }
     </tr>
   </tbody>
 </table>
-<!-- <pre>{{ _expenses | json }}</pre> -->
+<pre>{{ _incomes | json }}</pre>
+<pre>{{ _expenses | json }}</pre>
 
 <ng-template #breakLine>
   <tr>

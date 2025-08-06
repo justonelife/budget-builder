@@ -4,4 +4,5 @@ export interface Expense {
   id: string;
   label: string;
   transactions: Transaction[];
+  totals: number[];
 }

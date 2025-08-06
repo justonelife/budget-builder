@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MONTHS } from '@features/budget-builder/data-access/consts/const';
@@ -48,7 +48,47 @@ export class BudgetBuilderComponent {
   );
 
   incomes = signal<Income[]>([]);
+  incomeMonthlyTotals = computed<number[]>(() => {
+    const _incomes = this.incomes();
+    let result: number[] = new Array(12).fill(0);
+    _incomes.forEach(income => {
+      income.totals.forEach((monthlyValue, index) => {
+        result[index] += monthlyValue;
+      })
+    })
+    return result;
+  })
   expenses = signal<Expense[]>([]);
+  expenseMonthlyTotals = computed<number[]>(() => {
+    const _expenses = this.expenses();
+    let result: number[] = new Array(12).fill(0);
+    _expenses.forEach(expense => {
+      expense.totals.forEach((monthlyValue, index) => {
+        result[index] += monthlyValue;
+      })
+    })
+    return result;
+  })
+
+  monthlyProfitsOrLosses = computed<number[]>(() => {
+    const _incomeMonthlyTotals = this.incomeMonthlyTotals();
+    const _expenseMonthlyTotals = this.expenseMonthlyTotals();
+    return _incomeMonthlyTotals.map((value, index) => {
+      return value - _expenseMonthlyTotals[index];
+    })
+  })
+
+  monthlyOpenBalances = computed<number[]>(() => {
+    return [0, ...this.monthlyProfitsOrLosses().slice(0, -1)];
+  });
+
+  monthlyCloseBalances = computed<number[]>(() => {
+    const _monthlyProfitsOrLosses = this.monthlyProfitsOrLosses();
+    const _monthlyOpenBalances = this.monthlyOpenBalances();
+    return _monthlyOpenBalances.map((value, index) => {
+      return _monthlyProfitsOrLosses[index] + value;
+    })
+  });
 
   private tableChanges$ = new Subject<TableChanges>();
   private triggerSaveBy$ = new Subject<'enter' | 'blur' | null>();
@@ -65,6 +105,7 @@ export class BudgetBuilderComponent {
           const { id, type, subtype, index, value } = tableChanges;
 
           if (id) {
+            // Update
             if (index !== undefined) {
               // Update transaction by id and index
               this.updateTransaction(id, index, type, value);
@@ -73,7 +114,13 @@ export class BudgetBuilderComponent {
             } else {
               this.updateParentCategoryLabel(id, type, value);
             }
-
+          } else {
+            // Create
+            if (type === 'income') {
+              this.addParentCategoryIncome(value?.toString());
+            } else {
+              this.addParentCategoryExpense(value?.toString());
+            }
           }
         }
       }),
@@ -101,8 +148,11 @@ export class BudgetBuilderComponent {
           const updatedTransactions = [...income.transactions];
           updatedTransactions[transactionIndex].monthlyValues[index] = value as number;
 
+          const updatedTotals = this.updateTotals(income);
+
           return {
             ...income,
+            totals: updatedTotals,
             transactions: updatedTransactions,
           };
         });
@@ -118,14 +168,28 @@ export class BudgetBuilderComponent {
           const updatedTransactions = [...expense.transactions];
           updatedTransactions[transactionIndex].monthlyValues[index] = value as number;
 
+          const updatedTotals = this.updateTotals(expense);
+
           return {
             ...expense,
+            totals: updatedTotals,
             transactions: updatedTransactions,
           };
         });
 
       });
     }
+  }
+
+  updateTotals(incomeOrExpense: Income | Expense): number[] {
+    const result = Array.from({ length: 12 }, () => 0);
+
+    incomeOrExpense.transactions.forEach(transaction => {
+      transaction.monthlyValues.forEach((value, index) => {
+        result[index] += value;
+      })
+    });
+    return result;
   }
 
   updateTransactionLabel(id: string, type: 'income' | 'expense' | undefined, value: string | number | null | undefined): void {
@@ -213,6 +277,7 @@ export class BudgetBuilderComponent {
       id: uuidv4(),
       label,
       transactions: [],
+      totals: Array.from({ length: 12 }, () => 0),
     };
   }
 
@@ -258,8 +323,8 @@ export class BudgetBuilderComponent {
     return {
       id: uuidv4(),
       label,
-      // monthlyValues: Array.from({ length: 12 }, () => 0),
-      monthlyValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      monthlyValues: Array.from({ length: 12 }, () => 0),
+      // monthlyValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
     };
   }
 
